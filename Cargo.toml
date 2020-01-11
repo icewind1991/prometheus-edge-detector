@@ -3,7 +3,17 @@ name = "prometheus-edge-detector"
 version = "0.1.0"
 authors = ["Robin Appelman <robin@icewind.nl>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Find the most recent rising or dropping edge from a prometheus query"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/icewind1991/prometheus-edge-detector"
 
 [dependencies]
+tokio = { version = "0.2.4", features = ["time"] }
+err-derive = "0.2.1"
+futures-util = "0.3.1"
+reqwest = { version = "0.10.0", features = ["json"]}
+serde = { version = "1.0", features = ["derive"] }
+
+[dev-dependencies]
+tokio = { version = "0.2.4", features = ["macros"] }
+main_error = "0.1.0"
