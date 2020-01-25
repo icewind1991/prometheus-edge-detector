@@ -11,9 +11,14 @@ repository = "https://github.com/icewind1991/prometheus-edge-detector"
 tokio = { version = "0.2.4", features = ["time"] }
 err-derive = "0.2.1"
 futures-util = "0.3.1"
-reqwest = { version = "0.10.0", features = ["json"]}
+reqwest = { version = "0.10.0", default-features = false, features = ["json"]}
 serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies]
 tokio = { version = "0.2.4", features = ["macros"] }
 main_error = "0.1.0"
+
+[features]
+default = ["default-tls"]
+default-tls = ["reqwest/default-tls"]
+rustls-tls = ["reqwest/rustls-tls"]
