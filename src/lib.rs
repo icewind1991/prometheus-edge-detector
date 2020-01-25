@@ -3,6 +3,7 @@ use reqwest::Client;
 use serde::Deserialize;
 use std::time::SystemTime;
 use tokio::time::Duration;
+use std::cmp::{min, max};
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -134,7 +135,7 @@ impl EdgeDetector {
             query,
             start_time,
             end_time,
-            60,
+            min(60usize, max(2usize, (end_time as usize - start_time as usize) / 240)),
         )
         .await?
         .data
