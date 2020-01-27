@@ -1,9 +1,9 @@
 use err_derive::Error;
 use reqwest::Client;
 use serde::Deserialize;
+use std::cmp::{max, min};
 use std::time::SystemTime;
 use tokio::time::Duration;
-use std::cmp::{min, max};
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -50,7 +50,7 @@ struct QueryResultDataResult {
 #[derive(Debug, Clone, Deserialize)]
 struct QueryResultDataResultMetric {
     #[serde(rename = "__name__")]
-    id: String,
+    id: Option<String>,
     instance: String,
     job: String,
 }
@@ -135,7 +135,10 @@ impl EdgeDetector {
             query,
             start_time,
             end_time,
-            min(60usize, max(2usize, (end_time as usize - start_time as usize) / 240)),
+            min(
+                60usize,
+                max(2usize, (end_time as usize - start_time as usize) / 240),
+            ),
         )
         .await?
         .data
