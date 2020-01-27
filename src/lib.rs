@@ -2,6 +2,7 @@ use err_derive::Error;
 use reqwest::Client;
 use serde::Deserialize;
 use std::cmp::{max, min};
+use std::collections::HashMap;
 use std::time::SystemTime;
 use tokio::time::Duration;
 
@@ -43,16 +44,8 @@ struct QueryResultData {
 
 #[derive(Debug, Clone, Deserialize)]
 struct QueryResultDataResult {
-    metric: QueryResultDataResultMetric,
+    metric: HashMap<String, String>,
     values: Vec<QueryResultDataResultValue>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct QueryResultDataResultMetric {
-    #[serde(rename = "__name__")]
-    id: Option<String>,
-    instance: String,
-    job: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
