@@ -6,6 +6,7 @@ use std::time::SystemTime;
 use tokio::time::Duration;
 
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Network error: {0}")]
     Network(reqwest::Error),
@@ -13,21 +14,25 @@ pub enum Error {
     MalformedResponse(reqwest::Error),
     #[error("Data point is not an integer: {0}")]
     NonNumericDataPoint(String),
-    #[error("Prometheus returned an error for the query")]
-    PrometheusError
+    #[error("Prometheus returned a {error_type} error for the query: {error}")]
+    PrometheusError{
+        error_type: String,
+        error: String,
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "status")]
 #[serde(rename_all = "lowercase")]
-pub enum QueryResultStatus {
-    Success,
-    Error,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct QueryResult {
-    status: QueryResultStatus,
-    data: QueryResultData,
+enum QueryResult {
+    Success {
+        data: QueryResultData
+    },
+    Error {
+        #[serde(rename = "errorType")]
+        error_type: String,
+        error: String,
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -36,7 +41,7 @@ enum QueryResultDataType {
     Matrix,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 struct QueryResultData {
     result: Vec<QueryResultDataResult>,
@@ -73,9 +78,9 @@ async fn query_prometheus(
         .await
         .map_err(Error::MalformedResponse)?;
 
-    match result.status {
-        QueryResultStatus::Success => Ok(result.data),
-        QueryResultStatus::Error => Err(Error::PrometheusError),
+    match result {
+        QueryResult::Success{data} => Ok(data),
+        QueryResult::Error {error, error_type} => Err(Error::PrometheusError{error_type, error}),
     }
 }
 

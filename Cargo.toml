@@ -1,11 +1,12 @@
 [package]
 name = "prometheus-edge-detector"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Robin Appelman <robin@icewind.nl>"]
 edition = "2018"
 description = "Find the most recent rising or dropping edge from a prometheus query"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/icewind1991/prometheus-edge-detector"
+rust-version = "1.63.0"
 
 [dependencies]
 tokio = { version = "1.36", features = ["time"] }
