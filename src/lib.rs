@@ -1,19 +1,20 @@
-use err_derive::Error;
+use thiserror::Error;
 use reqwest::Client;
 use serde::Deserialize;
 use std::cmp::{max, min};
-use std::collections::HashMap;
 use std::time::SystemTime;
 use tokio::time::Duration;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error(display = "Network error: {}", _0)]
+    #[error("Network error: {0}")]
     Network(reqwest::Error),
-    #[error(display = "Malformed json response: {}", _0)]
+    #[error("Malformed json response: {0}")]
     MalformedResponse(reqwest::Error),
-    #[error(display = "Data point is not an interger: {}", _0)]
+    #[error("Data point is not an integer: {0}")]
     NonNumericDataPoint(String),
+    #[error("Prometheus returned an error for the query")]
+    PrometheusError
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -38,13 +39,11 @@ enum QueryResultDataType {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct QueryResultData {
-    result_type: QueryResultDataType,
     result: Vec<QueryResultDataResult>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 struct QueryResultDataResult {
-    metric: HashMap<String, String>,
     values: Vec<QueryResultDataResultValue>,
 }
 
@@ -58,8 +57,8 @@ async fn query_prometheus(
     start: u64,
     end: u64,
     step: usize,
-) -> Result<QueryResult, Error> {
-    client
+) -> Result<QueryResultData, Error> {
+    let result = client
         .get(base_url)
         .query(&[
             ("query", query),
@@ -69,10 +68,15 @@ async fn query_prometheus(
         ])
         .send()
         .await
-        .map_err(|err| Error::Network(err))?
-        .json()
+        .map_err(Error::Network)?
+        .json::<QueryResult>()
         .await
-        .map_err(|err| Error::MalformedResponse(err))
+        .map_err(Error::MalformedResponse)?;
+
+    match result.status {
+        QueryResultStatus::Success => Ok(result.data),
+        QueryResultStatus::Error => Err(Error::PrometheusError),
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -134,7 +138,6 @@ impl EdgeDetector {
             ),
         )
         .await?
-        .data
         .result;
 
         let first_data = match data.into_iter().next() {

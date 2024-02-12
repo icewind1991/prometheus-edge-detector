@@ -17,7 +17,7 @@
       };
     in rec {
       devShells.default = pkgs.mkShell {
-        nativeBuildInputs = with pkgs; [cargo rustc clippy bacon cargo-edit cargo-msrv];
+        nativeBuildInputs = with pkgs; [cargo rustc clippy bacon cargo-edit cargo-msrv pkg-config openssl];
       };
     });
 }
