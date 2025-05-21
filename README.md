@@ -1,3 +1,5 @@
+# Moved to https://codeberg.org/icewind/prometheus-edge-detector
+
 # Prometheus edge detector
 
 Find the most recent rising or dropping edge from a prometheus query
